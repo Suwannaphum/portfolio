@@ -4,19 +4,26 @@ import { AppService } from './app.service.js';
 
 describe('AppController', () => {
   let appController: AppController;
+  const appService = {
+    getPortfolio: vi.fn(),
+  };
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
-      providers: [AppService],
+      providers: [{ provide: AppService, useValue: appService }],
     }).compile();
 
     appController = app.get<AppController>(AppController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+  describe('portfolio', () => {
+    it('returns the portfolio from the service', async () => {
+      const portfolio = { name: 'Mhailele' };
+      appService.getPortfolio.mockResolvedValue(portfolio);
+
+      await expect(appController.getPortfolio()).resolves.toBe(portfolio);
+      expect(appService.getPortfolio).toHaveBeenCalledOnce();
     });
   });
 });

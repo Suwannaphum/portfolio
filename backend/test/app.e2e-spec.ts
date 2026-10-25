@@ -16,11 +16,14 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  it('/portfolio (GET)', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get('/portfolio')
       .expect(200)
-      .expect('Hello World!');
+      .expect(({ body }) => {
+        expect(body.name).toBeDefined();
+        expect(body.projects).toBeInstanceOf(Array);
+      });
   });
 
   afterEach(async () => {
