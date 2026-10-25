@@ -70,6 +70,8 @@ function formatDate(value: string | null) {
   }).format(new Date(value));
 }
 
+export const instant = false;
+
 export default async function Home() {
   const portfolio = await getPortfolio();
 
