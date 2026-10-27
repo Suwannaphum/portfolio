@@ -388,11 +388,57 @@ SEED_ADMIN_PASSWORD=change-me
 
 คำสั่งหลักสำหรับ Local Docker:
 
-1. สร้าง `.env` จากตัวอย่างและเติม Cloudinary Credentials
-2. รัน `docker compose up --build`
-3. รัน Prisma Migration และ Seed ตามคำสั่งของ Backend Container
-4. เปิด Public ที่ `http://localhost:3001/`
-5. เปิด Admin ที่ `http://localhost:3001/admin`
-6. เปิด Swagger ที่ `http://localhost:3000/docs`
+1. ใช้ Node.js ตาม `.nvmrc` และสร้าง environment จากตัวอย่าง:
 
-รายละเอียดคำสั่ง migration, seed, test และ environment ต้องอัปเดตให้ตรงกับ scripts จริงเมื่อเริ่มสร้างโครงสร้างโปรเจกต์
+   ```bash
+   nvm use
+   cp .env.example .env
+   ```
+
+2. ติดตั้ง dependencies ของแต่ละ service:
+
+   ```bash
+   npm --prefix backend install
+   npm --prefix frontend install
+   npm --prefix qa install
+   ```
+
+3. เริ่ม PostgreSQL และสร้าง migration/seed โดยใช้ host connection:
+
+   ```bash
+   docker compose --env-file .env up -d postgres
+
+   set -a
+   . ./.env
+   set +a
+   HOST_DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}"
+
+   DATABASE_URL="$HOST_DATABASE_URL" \
+     npm --prefix backend run prisma:migrate -- --name init
+
+   DATABASE_URL="$HOST_DATABASE_URL" \
+   SEED_ADMIN_EMAIL="$SEED_ADMIN_EMAIL" \
+   SEED_ADMIN_PASSWORD="$SEED_ADMIN_PASSWORD" \
+     npm --prefix backend run prisma:seed
+   ```
+
+4. สร้างและเริ่ม Frontend/Backend:
+
+   ```bash
+   docker compose --env-file .env up --build -d backend frontend
+   ```
+
+5. เปิด `http://localhost:3001/` และตรวจ Backend ที่ `http://localhost:3000/health` สคริปต์ Admin และ Swagger จะถูกเปิดเมื่อ modules ตาม API contract ถูกสร้างครบ
+
+คำสั่งตรวจสอบ:
+
+```bash
+npm --prefix backend test
+npm --prefix backend run build
+npm --prefix frontend run lint
+npm --prefix frontend run build
+npm --prefix qa run install:browsers
+npm --prefix qa test
+```
+
+หยุด service ด้วย `docker compose --env-file .env down`; หลีกเลี่ยง `down -v` หากต้องการเก็บข้อมูล PostgreSQL ใน local volume
