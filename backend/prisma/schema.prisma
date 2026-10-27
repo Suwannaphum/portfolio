@@ -22,51 +22,47 @@ model User {
 }
 
 model Profile {
-  id                        String       @id @default(cuid())
-  ownerId                   String       @unique
-  owner                     User         @relation(fields: [ownerId], references: [id])
+  id      String @id @default(cuid())
+  ownerId String @unique
+  owner   User   @relation(fields: [ownerId], references: [id])
 
-  name                      String
-  headline                  String
-  bio                       String       @db.Text
-  location                  String?
-  email                     String?
-  availableForOpportunities Boolean      @default(false)
-  avatarUrl                 String?
-  avatarAlt                 String?
-  avatarCloudinaryId        String?
-  resumeUrl                 String?
-  resumeCloudinaryId        String?
-  githubUrl                 String?
-  linkedinUrl               String?
+  name               String
+  headline           String
+  bio                String  @db.Text
+  location           String?
+  email              String?
+  avatarUrl          String?
+  avatarAlt          String?
+  avatarCloudinaryId String?
+  resumeUrl          String?
+  githubUrl          String?
+  linkedinUrl        String?
 
-  skills                    Skill[]
-  experiences               Experience[]
-  projects                  Project[]
-
-  createdAt                 DateTime     @default(now())
-  updatedAt                 DateTime     @updatedAt
-}
-
-model Skill {
-  id        String   @id @default(cuid())
-  profileId String
-  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-
-  name      String
-  category  String?
-  sortOrder Int      @default(0)
+  skills      Skill[]
+  experiences Experience[]
+  projects    Project[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
 
-  @@index([profileId, sortOrder])
+model Skill {
+  id        String  @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id])
+
+  name      String
+  category  String?
+  sortOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Experience {
-  id           String    @id @default(cuid())
-  profileId    String
-  profile      Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id])
 
   title        String
   organization String
@@ -77,16 +73,14 @@ model Experience {
   highlights   String[]  @default([])
   sortOrder    Int       @default(0)
 
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  @@index([profileId, sortOrder])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Project {
-  id                String        @id @default(cuid())
-  profileId         String
-  profile           Profile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id])
 
   title             String
   slug              String        @unique
@@ -100,26 +94,21 @@ model Project {
   status            ProjectStatus @default(DRAFT)
   sortOrder         Int           @default(0)
 
-  gallery           ProjectImage[]
+  gallery ProjectImage[]
 
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-
-  @@index([profileId, status, sortOrder])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ProjectImage {
-  id           String  @id @default(cuid())
-  projectId    String
-  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   imageUrl     String
   cloudinaryId String
   alt          String
-  sortOrder    Int     @default(0)
+  sortOrder    Int    @default(0)
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@index([projectId, sortOrder])
+  createdAt DateTime @default(now())
 }

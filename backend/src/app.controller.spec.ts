@@ -1,20 +1,29 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { AppController } from "./app.controller.js";
-import { AppService } from "./app.service.js";
+import { Test, TestingModule } from '@nestjs/testing';
+import { AppController } from './app.controller.js';
+import { AppService } from './app.service.js';
 
-describe("AppController", () => {
+describe('AppController', () => {
   let appController: AppController;
+  const appService = {
+    getPortfolio: vi.fn(),
+  };
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
-      providers: [AppService],
+      providers: [{ provide: AppService, useValue: appService }],
     }).compile();
 
     appController = app.get<AppController>(AppController);
   });
 
-  it("returns a healthy status", () => {
-    expect(appController.getHealth()).toEqual({ status: "ok" });
+  describe('portfolio', () => {
+    it('returns the portfolio from the service', async () => {
+      const portfolio = { name: 'Mhailele' };
+      appService.getPortfolio.mockResolvedValue(portfolio);
+
+      await expect(appController.getPortfolio()).resolves.toBe(portfolio);
+      expect(appService.getPortfolio).toHaveBeenCalledOnce();
+    });
   });
 });
