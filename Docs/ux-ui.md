@@ -4,7 +4,7 @@
 > **โปรเจกต์:** Personal Portfolio — One-page + Admin CMS  
 > **แนวทางหลัก:** Dark Neon Mint · Syne + Plus Jakarta Sans · Asymmetric Bento Grid · Developer / Engineer  
 > **รองรับ responsive**
-> **เวอร์ชัน:** 1.0
+> **เวอร์ชัน:** 2.0 — MVP Requirements Locked
 
 ---
 
@@ -21,7 +21,7 @@
 3. **Readability:** สวยอย่างมีระเบียบ ใช้สี Neon Mint เป็นจุดเน้นแทนการเรืองแสงทุกพื้นที่
 4. **Responsive & accessible:** ใช้ได้ตั้งแต่มือถือจนถึง Desktop, รองรับคีย์บอร์ดและผู้ใช้ที่ลดการเคลื่อนไหว
 5. **CMS clarity:** การแก้ไข Draft / Published ต้องเข้าใจง่ายและป้องกันความเข้าใจผิดเรื่องสถานะ
-6. **MVP discipline:** ไม่มีระบบหลายผู้ใช้, Feed, Blog, Analytics Dashboard, Public Search, Project Detail Page หรือ Contact Form
+6. **MVP discipline:** ไม่มีระบบหลายผู้ใช้, Feed, Blog, Analytics/Chart, Public Search, Project Detail Page หรือ Contact Form
 
 ### บุคลิกภาพแบรนด์
 
@@ -160,14 +160,15 @@
 ### Admin (`/admin`)
 
 1. Login (หากยังไม่ได้ Authenticate)
-2. Profile Editor
-3. Skills Manager
-4. Experience Manager
-5. Projects List
-6. Project Editor + Image Upload
-7. Logout
+2. Dashboard Summary + Quick Actions
+3. Profile Editor
+4. Skills Manager
+5. Experience Manager
+6. Projects List
+7. Project Editor + Media Upload + Preview
+8. Logout
 
-**ไม่ต้องมี Analytics Dashboard** ตามขอบเขต MVP; สามารถเปิดหน้า `/admin` เข้าหน้า Projects List หรือหน้าจัดการหลักได้ทันที
+Dashboard ใน MVP เป็น Summary + Quick Actions เท่านั้น ไม่มี Analytics, Chart หรือสถิติผู้ชม และ `/admin` ต้องเปิด Dashboard หลัง Login
 
 ---
 
@@ -185,11 +186,11 @@
 
 ### 7.2 Hero
 
-**ข้อมูล:** `name`, `headline`, `location` หรือสถานะงาน, `avatarUrl`, `email`, `resumeUrl` (ถ้ามี)
+**ข้อมูล:** `name`, `headline`, `location`, `availableForOpportunities`, `avatarUrl`, `email`, `resumeUrl` (ถ้ามี)
 
 **แนวข้อความตัวอย่าง (Placeholder):**
 
-- Eyebrow: `AVAILABLE FOR OPPORTUNITIES` (แสดงเมื่อสถานะนี้เป็นความจริงและกำหนดในข้อมูล)
+- Eyebrow: `AVAILABLE FOR OPPORTUNITIES` (แสดงเมื่อ `availableForOpportunities = true` เท่านั้น)
 - Headline: `Building digital experiences.`
 - Description: `Full Stack Developer crafting scalable systems and thoughtful interfaces.`
 - CTA Primary: `Explore My Work` → `#work`
@@ -224,7 +225,7 @@
 - ภาพหลัก (`coverImageUrl`) พร้อม `alt`
 - ปุ่ม `Live Demo` เมื่อมี `projectUrl`
 - ปุ่ม `Source Code` เมื่อมี `sourceUrl`
-- ปุ่ม `View Gallery` หากมี `galleryUrls`
+- ปุ่ม `View Gallery` หากมี `gallery`
 
 **Gallery Pattern:** เปิด Modal/Lightbox จาก Card ภายในหน้าเดียว โดยไม่สร้าง Project Detail Page
 
@@ -238,7 +239,7 @@
 
 **Presentation:** Vertical Timeline หรือ Stacked Cards
 
-แต่ละรายการควรมี:
+แต่ละรายการต้องมี:
 
 - Role / Degree
 - Organization
@@ -298,7 +299,7 @@ Header → Hero Headline/CTA → Avatar/Status → About → Skills → Selected
 | Component | จำเป็นต้องมี |
 |---|---|
 | `SiteHeader` | Anchor nav, mobile menu, skip link |
-| `HeroSection` | Name, headline, location/status, CTA, avatar |
+| `HeroSection` | Name, headline, location, availability, CTA, avatar |
 | `BentoCard` | Variants สำหรับ neutral/highlight, responsive span |
 | `SectionHeading` | Eyebrow + H2 + optional subtitle |
 | `SkillTag` | Label อ่านได้และ wrap |
@@ -308,6 +309,8 @@ Header → Hero Headline/CTA → Avatar/Status → About → Skills → Selected
 | `ContactSection` | Email, social, CV |
 | `SiteFooter` | Footer links |
 | `EmptyState` | กรณีข้อมูลยังไม่พร้อม |
+
+Public และ Admin ต้องใช้ shadcn/ui เป็น Component Foundation สำหรับ Form, Button, Dialog, Table และ Feedback; Aceternity UI ใช้เฉพาะ Visual Component เด่นบนหน้า Landing และต้องไม่ลดทอน Accessibility
 
 ### State ที่ต้องออกแบบ
 
@@ -329,43 +332,58 @@ Header → Hero Headline/CTA → Avatar/Status → About → Skills → Selected
 - Primary Action หนึ่งตัวต่อบริบท เช่น `Save Changes` หรือ `Publish`
 - ทุกการ Save ต้องมี feedback (`Saving…`, `Saved`, `Failed to save`)
 
-### 10.2 Login
+### 10.2 Dashboard Summary
+
+หลัง Login สำเร็จต้องเปิด Dashboard ที่มี:
+
+- จำนวน `Draft Projects` และ `Published Projects`
+- จำนวน Skills และ Experiences
+- `Profile Completeness`
+- Quick Actions ไปยัง Profile, Skills, Experience และ Projects
+
+Dashboard ไม่มี Analytics, Chart, Visitor Stats หรือ Data Visualization
+
+### 10.3 Login
 
 **Fields:** Email, Password; ปุ่ม `Sign In`
 
 - ซ่อนรายละเอียดผิดพลาดที่ระบุว่ามีหรือไม่มีอีเมลใดในระบบ
 - มี Loading, Invalid credentials, Network error
 - ใช้ Session Cookie แบบ Secure HttpOnly ตามสเปก
-- ไม่มี Register / Forgot password แบบ self-service ใน MVP หากยังไม่กำหนดวิธี Recovery
+- ไม่มี Register และ Forgot Password แบบ self-service ใน MVP
+- หลัง Login สำเร็จให้ไปที่ Dashboard Summary
 
-### 10.3 Profile Editor
+### 10.4 Profile Editor
 
 **จัดกลุ่ม Form:**
 
 1. Identity — Name, Headline, Bio, Location, Email
-2. Media — Avatar และ Resume URL / การแนบไฟล์ตามความสามารถระบบที่ตกลงกัน
-3. Social — GitHub, LinkedIn
+2. Availability — Toggle `availableForOpportunities`
+3. Media — Avatar และ Resume PDF Upload
+4. Social — GitHub, LinkedIn
 
 - Preview Avatar ก่อนบันทึก
 - Field URL ต้องตรวจรูปแบบและรองรับค่าว่าง
-- Resume เป็น URL ใน Data Model ปัจจุบัน; หากต้องการอัปโหลด Resume จริงต้องกำหนด Storage/Validation เพิ่ม เพราะข้อกำหนด Cloudinary Upload ปัจจุบันจำกัดรูปภาพ
-- **สำคัญ:** ข้อมูล Profile ไม่มีสถานะ Draft/Published ใน Data Model ปัจจุบัน การ Save จะมีผลบน Public เมื่อระบบดึงข้อมูลใหม่; ต้องแจ้งผลนี้ไว้ใน UI
+- Resume ใช้ Cloudinary เช่นเดียวกับรูปภาพ โดยรับเฉพาะ PDF ขนาดไม่เกิน 20MB
+- Profile ไม่มีสถานะ Draft/Published; การ Save มีผลบน Public ทันที และต้องแสดง Feedback ชัดเจน
+- `resumeUrl` และ `resumeCloudinaryId` ต้องถูกอัปเดตหรือล้างพร้อมกัน
 
-### 10.4 Skills Manager
+### 10.5 Skills Manager
 
 - List พร้อมเพิ่ม/แก้ไข/ลบ และจัดลำดับ
-- ใช้ Drag & Drop ได้ แต่ควรมีปุ่ม Move Up / Move Down เพื่อรองรับ Keyboard
-- Validate ชื่อไม่ว่างและป้องกันข้อมูลซ้ำตามกติกาที่ตกลง
-- Sort Order ที่ Save ต้องส่งผลต่อหน้า Public
+- ใช้ Drag & Drop ได้ และต้องมีปุ่ม Move Up / Move Down เพื่อรองรับ Keyboard
+- Validate ชื่อไม่ว่างและป้องกันข้อมูลซ้ำโดยไม่สนใจตัวพิมพ์เล็ก/ใหญ่
+- บันทึกลำดับผ่าน Batch reorder endpoint และต้องส่งผลต่อหน้า Public
 
-### 10.5 Experience Manager
+### 10.6 Experience Manager
 
 - เพิ่ม/แก้ไข/ลบ/จัดลำดับประสบการณ์หรือการศึกษา
-- ฟิลด์แนะนำ: Role/Title, Organization, Type, Start Date, End Date, Summary, Sort Order
+- ฟิลด์: Role/Title, Organization, Type, Start Date, End Date, Summary, Highlights, Sort Order
 - เมื่อ `Present` ให้ไม่บังคับ End Date
-- พิจารณา Confirm ก่อนลบถาวร
+- บันทึกลำดับผ่าน Batch reorder endpoint
+- ต้อง Confirm ก่อนลบถาวร
 
-### 10.6 Projects List
+### 10.7 Projects List
 
 **Recommended Columns:** Cover Thumbnail · Title · Status · Sort Order · Updated At · Actions
 
@@ -375,9 +393,9 @@ Header → Hero Headline/CTA → Avatar/Status → About → Skills → Selected
 
 - Draft: Badge `Draft` สี Neutral และแสดงข้อความกำกับ
 - Published: Badge `Published` สี Green/Mint และแสดงข้อความกำกับ
-- ไม่มี Analytics Widget ตามขอบเขต MVP
+- ไม่มี Analytics Widget หรือ Chart ตามขอบเขต MVP
 
-### 10.7 Project Editor
+### 10.8 Project Editor
 
 แบ่ง Form เป็น:
 
@@ -389,89 +407,97 @@ Header → Hero Headline/CTA → Avatar/Status → About → Skills → Selected
 
 **Primary Actions:** `Save Draft`, `Publish`; เมื่อเผยแพร่แล้วมี `Save Changes` และ `Unpublish`
 
-**ข้อควรระวัง:** ใน Data Model ปัจจุบันมีเพียง `status` ระดับ Project ไม่มีระบบ Revision แยก Draft Content จาก Published Content ดังนั้นเมื่อแก้ไขเนื้อหาของ Project ที่ Published และกด Save เนื้อหาอาจเปลี่ยนบน Public ทันที **ไม่ควรระบุว่ารองรับการแก้ Draft ของ Project ที่เผยแพร่แล้วโดยไม่กระทบ Public** เว้นแต่เพิ่มโครงสร้างข้อมูลสำหรับ Revision/Versioning
+**Publishing Rule:** Data Model มี `status` ระดับ Project แต่ไม่มี Revision/Versioning ดังนั้นการแก้ไข Project ที่ Published แล้วกด Save จะมีผลบน Public ทันที UI ต้องแสดงข้อความเตือนนี้ก่อนบันทึก
 
-### 10.8 Preview ก่อนเผยแพร่ (Optional ใน MVP)
+### 10.9 Preview ก่อนเผยแพร่ (บังคับใน MVP)
 
-แนะนำ Preview ภายใน Admin จากค่าปัจจุบันในฟอร์มโดย **ไม่เรียก Public API และไม่เปิดเผย Draft ผ่าน Public Endpoint** สามารถเปิด Side Panel หรือ Preview Modal ที่แสดง Card ในดีไซน์ Public; เลื่อนออกไปหลัง MVP ได้หากซับซ้อน
+Preview ต้องใช้ค่าปัจจุบันในฟอร์มโดย **ไม่เรียก Public API และไม่เปิดเผย Draft ผ่าน Public Endpoint** ใช้ Side Panel หรือ Preview Modal ที่แสดง Hero/Profile/Project Card/Gallery ตามดีไซน์ Public
 
-### 10.9 Media Upload
+### 10.10 Media Upload
 
-- ใช้ Cloudinary สำหรับ Avatar, Cover, Gallery Images
+- ใช้ Cloudinary สำหรับ Avatar, Cover, Gallery Images และ Resume PDF
+- Browser ต้องส่งไฟล์ผ่าน Backend; ห้ามใช้ Cloudinary Secret หรือ Write Credential ฝั่ง Browser
+- รองรับ JPEG, PNG, WebP ไม่เกิน 10MB และ PDF ไม่เกิน 20MB
+- Gallery จำกัดไม่เกิน 10 รูปต่อ Project
 - แสดง Preview, Progress/Uploading, Success, Error และปุ่ม Remove/Retry
-- ตรวจชนิด MIME ที่อนุญาต, ขนาดไฟล์สูงสุด และจำนวนรูปตาม Configuration
-- Validate ซ้ำที่ Backend ไม่เชื่อแค่ Frontend
-- ไม่ส่ง Cloudinary Secret หรือ Credential สำหรับเขียนข้อมูลไปยัง Browser
-- หลีกเลี่ยงการลบภาพจาก Cloudinary ทันทีหากยังถูกอ้างถึงในข้อมูลอื่น
+- ตรวจ MIME, ขนาดไฟล์ และจำนวนรูปซ้ำที่ Backend
+- เมื่อ Remove ให้ลบ Database Reference ก่อน และไม่ลบ Cloudinary Asset ทันที
 
 ---
 
-## 11. Content Model ที่เสนอให้เติมรายละเอียด
+## 11. Content Model ของ MVP
 
-Model ขั้นต่ำตาม Requirement ครอบคลุม Profile และ Project แต่เพื่อรองรับ Skills/Experience CRUD และ Alt Text แนะนำปรับให้อยู่ในรูปแบบที่จัดการง่ายขึ้น:
+รายละเอียด canonical อยู่ใน [Docs/db.md](db.md) และ field names ใน UX ต้องตรงกับ Prisma model:
 
 ### Profile
 
-`name`, `headline`, `bio`, `location`, `email`, `avatarUrl`, `avatarAlt`, `resumeUrl`, `githubUrl`, `linkedinUrl`
+`name`, `headline`, `bio`, `location`, `email`, `availableForOpportunities`, `avatarUrl`, `avatarAlt`, `avatarCloudinaryId`, `resumeUrl`, `resumeCloudinaryId`, `githubUrl`, `linkedinUrl`
 
 ### Skill
 
-`id`, `name`, `category?`, `sortOrder`
+`id`, `profileId`, `name`, `category`, `sortOrder`
 
 ### Experience
 
-`id`, `title`, `organization`, `type?`, `startDate`, `endDate?`, `isCurrent?`, `summary?`, `sortOrder`
+`id`, `profileId`, `title`, `organization`, `type`, `startDate`, `endDate`, `summary`, `highlights`, `sortOrder`
 
 ### Project
 
-`id`, `title`, `slug`, `description`, `techStack`, `coverImageUrl`, `coverImageAlt`, `galleryItems[]`, `projectUrl?`, `sourceUrl?`, `status (Draft|Published)`, `sortOrder`, `createdAt`, `updatedAt`
+`id`, `profileId`, `title`, `slug`, `description`, `techStack`, `coverImageUrl`, `coverImageAlt`, `coverCloudinaryId`, `gallery`, `projectUrl`, `sourceUrl`, `status`, `sortOrder`, `createdAt`, `updatedAt`
 
-### GalleryItem
+### ProjectImage
 
-`imageUrl`, `alt`, `sortOrder`
+`id`, `projectId`, `imageUrl`, `cloudinaryId`, `alt`, `sortOrder`
 
-> `?` หมายถึง Optional ในข้อเสนอเชิง UX; การออกแบบ Prisma Schema จริงต้องตัดสินใจเรื่องความสัมพันธ์, Constraint และ Validation อีกครั้ง
+Profile, Skill และ Experience ไม่มี Draft state; Project เท่านั้นที่มี `DRAFT`/`PUBLISHED`
 
 ---
 
-## 12. API & Frontend Integration Notes
+## 12. API & Frontend Integration Contract
 
-### Endpoint ตาม Requirement
+รายละเอียด Request/Response canonical อยู่ใน [README.md](../README.md#api-contract) และต้องทำให้ตรงกันใน Swagger
 
-| Method | Endpoint | Scope |
-|---|---|---|
-| GET | `/portfolio` | Public: ข้อมูลสำหรับหน้า One-page เฉพาะ Published Projects |
-| POST | `/auth/login` | Admin Login |
-| POST | `/auth/logout` | Admin Logout |
-| GET / PATCH | `/portfolio/admin/profile` | Admin Read / Edit Profile |
-| GET / POST / PATCH / DELETE | `/portfolio/admin/projects` | Admin Project Management |
-| POST | `/media/upload` | Authenticated image upload |
+### Endpoint ที่ต้องมี
 
-### Endpoint เพิ่มเติมที่ควรระบุเมื่อเริ่ม Implementation
+| Method | Endpoint | Auth/CSRF | Scope |
+|---|---|---|---|
+| GET | `/portfolio` | Public | Profile, Skills, Experiences และ Published Projects |
+| POST | `/auth/login` | Public | Login และ Set JWT Cookie |
+| POST | `/auth/logout` | Auth + CSRF | Logout และล้าง Cookie |
+| GET | `/auth/csrf` | Public | คืน CSRF Token |
+| GET | `/portfolio/admin/profile` | Auth | อ่าน Profile สำหรับ Admin |
+| PATCH | `/portfolio/admin/profile` | Auth + CSRF | แก้ Profile |
+| GET | `/portfolio/admin/summary` | Auth | Dashboard Summary |
+| CRUD | `/portfolio/admin/skills` | Auth + CSRF สำหรับ Mutation | Skills |
+| CRUD | `/portfolio/admin/experiences` | Auth + CSRF สำหรับ Mutation | Experiences |
+| CRUD | `/portfolio/admin/projects` | Auth + CSRF สำหรับ Mutation | Projects |
+| PATCH | `/portfolio/admin/{resource}/reorder` | Auth + CSRF | Batch reorder |
+| POST | `/media/upload` | Auth + CSRF | Avatar, Cover, Gallery และ Resume |
 
-- Admin CRUD/Sort สำหรับ Skills เช่น `/portfolio/admin/skills`
-- Admin CRUD/Sort สำหรับ Experience เช่น `/portfolio/admin/experience`
-- GET รายละเอียด Project ใน Admin ตาม ID/Slug เพื่อรองรับ Edit
-- PATCH สำหรับ Batch Reorder (หรือใช้ Endpoint Update ต่อรายการอย่างชัดเจน)
-- หากมี Preview Backend ให้กำหนดว่าต้อง Authenticate และป้องกัน Cache/Public Leak อย่างไร
+### Frontend Data Rules
 
-**หมายเหตุ:** เส้นทางตัวอย่างเพิ่มเติมเป็นข้อเสนอ ไม่ใช่ API ที่มีอยู่แล้ว ต้องกำหนด Request/Response ใน Swagger
+- Public fetch ใช้ Server-side `no-store` และไม่ cache Draft
+- Admin ทุก mutation ส่ง CSRF Token ใน Header
+- Preview ใช้ Form State ภายใน Browser ไม่เรียก Public API และไม่สร้าง Public URL สำหรับ Draft
+- Public DTO ไม่แสดง `ownerId`, Password, Cloudinary IDs หรือ Internal timestamps ที่ไม่จำเป็น
+- Action Link แสดงเฉพาะเมื่อ URL มีค่าและผ่าน URL validation
+- หลัง Save/Publish/Unpublish/Reorder ให้แสดง Success/Error feedback และ re-fetch Public data ตาม `no-store`
 
 ### Authentication & Security UX/Implementation
 
 - Account เจ้าของเดียว ไม่มี Register และ Role System
 - Password Hash ด้วย Argon2
-- JWT ส่งผ่าน Secure HttpOnly Cookie; กำหนด `SameSite` และ Cookie Path/Domain ให้เหมาะกับ Deployment
-- สำหรับ Cookie-based Auth ต้องออกแบบการป้องกัน CSRF บน API ที่เปลี่ยนข้อมูลด้วย ไม่พึ่ง HttpOnly เพียงอย่างเดียว
+- JWT ส่งผ่าน `Secure`, `HttpOnly`, `SameSite=Lax` Cookie
+- Browser ใช้ Same-origin `/api` proxy จาก Next.js ไป NestJS
+- Mutation ต้องตรวจ Origin/Referer และ CSRF Token; ห้ามพึ่ง HttpOnly Cookie เพียงอย่างเดียว
 - Admin API ทุก Endpoint รวม Upload ต้องตรวจ Authentication/Authorization
 - Public API ไม่คืน Draft หรือ Secret แม้จะซ่อนด้วย CSS/JS ได้ก็ตาม
 - Secret, DB Credentials และ Cloudinary Secret เก็บฝั่ง Server ใน Environment Variables เท่านั้น
-- การจัดการ Cookie ข้าม Origin ต้องตั้งค่า CORS/Credentials อย่างจำกัด
+- ไม่เปิด CORS แบบ wildcard; ถ้ามี Internal service call ให้จำกัด Origin เป็น `FRONTEND_URL`
 
 ### Data Fetching & SEO
 
-- Next.js ใช้ Server Rendering/Static Strategy ตามนโยบายการอัปเดตข้อมูลของโปรเจกต์
-- กำหนด Revalidation/Cache Invalidation หลัง Publish/Unpublish เพื่อให้หน้า Public ไม่ค้างสถานะเก่า
+- Next.js ใช้ Server Rendering สำหรับ Public และ `no-store` เพื่อให้ข้อมูลล่าสุดแสดงทันที
 - สร้าง `title`, `description`, canonical URL, Open Graph Image และ Social Metadata
 - ใช้ Semantic HTML (`header`, `main`, `section`, `footer`) และ Heading Hierarchy ที่ถูกต้อง
 - Image ที่ส่งเข้าเว็บควร Optimize ขนาด, Format, Responsive `sizes`, Width/Height เพื่อลด Layout Shift
@@ -480,6 +506,8 @@ Model ขั้นต่ำตาม Requirement ครอบคลุม Profil
 ---
 
 ## 13. Accessibility Checklist
+
+MVP ต้องตั้งเป้า WCAG 2.2 AA และตรวจด้วย Keyboard, Screen Reader ขั้นพื้นฐาน และ Lighthouse ก่อนถือว่าเสร็จ
 
 - [ ] ใช้ Semantic Heading ตามลำดับ: H1 เพียงจุดหลัก, H2 เป็น Section, H3 เป็น Card Title
 - [ ] มี Skip-to-content Link
@@ -496,9 +524,9 @@ Model ขั้นต่ำตาม Requirement ครอบคลุม Profil
 
 ---
 
-## 14. Motion & Interaction Guidelines
+## 14. Motion & Interaction Requirements
 
-| Interaction | ข้อเสนอ |
+| Interaction | ข้อกำหนด |
 |---|---|
 | Card Hover | ยก Surface เล็กน้อยหรือเปลี่ยน Border Color โดยไม่ขยับเนื้อหาจนอ่านยาก |
 | CTA Hover | เปลี่ยนความสว่างหรือ Transform เล็กน้อย |
@@ -514,11 +542,10 @@ Model ขั้นต่ำตาม Requirement ครอบคลุม Profil
 
 ## 15. Suggested Folder / Component Split
 
-ตัวอย่างเชิงแนวคิด ไม่ใช่ข้อบังคับด้าน Architecture:
+โครงสร้างขั้นต่ำที่ใช้เป็น Implementation Contract:
 
 ```text
-apps/
-  web/                 # Next.js + TypeScript
+frontend/              # Next.js + TypeScript
     app/
       page.tsx         # Public one-page
       admin/           # Admin routes
@@ -530,7 +557,7 @@ apps/
       api/
       types/
       design-tokens/
-  api/                 # NestJS + TypeScript
+backend/               # NestJS + TypeScript
     src/
       auth/
       portfolio/
@@ -554,30 +581,37 @@ prisma/
 
 - [ ] หน้า `/` แสดงข้อมูลจริงจาก Backend ได้
 - [ ] มี Hero, About, Skills, Selected Work, Experience, Contact
+- [ ] Hero แสดง Availability ตาม `availableForOpportunities`
 - [ ] ไม่แสดง Project สถานะ Draft แม้ใน Network Response ของ Public API
 - [ ] เรียง Project และ Skills ตามค่า Sort Order
+- [ ] เรียง Experience ตามค่า Sort Order
 - [ ] Project Action Links แสดงเฉพาะ URL ที่มีอยู่
 - [ ] Gallery Modal เปิด/ปิดและใช้งานผ่าน Keyboard ได้
 - [ ] Mobile/Desktop ไม่มี Horizontal Overflow
 - [ ] SEO Metadata และ Alt Text พร้อม
+- [ ] Public fetch ใช้ `no-store`
 
 ### Admin
 
 - [ ] Login และ Logout ทำงานจริง
 - [ ] หน้า Admin ปฏิเสธผู้ไม่ได้ Authentication
+- [ ] Dashboard มี Summary และ Quick Actions โดยไม่มี Analytics
 - [ ] Profile Editor, Skills, Experience, Projects CRUD ทำงาน
+- [ ] Profile, Skills และ Experience Save แล้วมีผล Public ทันที
 - [ ] Save/Upload/Publish/Unpublish มี Feedback และ Error State
 - [ ] Draft/Published แยกชัดและเปลี่ยนสถานะได้จริง
-- [ ] Reorder Projects/Skills ส่งผลบนหน้า Public
-- [ ] Upload รูปภาพพร้อม Validation และไม่เปิด Secret
+- [ ] Project ที่ Published แก้ไขแล้วมีผล Public ทันที
+- [ ] Batch Reorder Projects/Skills/Experience ส่งผลบนหน้า Public
+- [ ] Upload รูปภาพและ Resume PDF ผ่าน Backend พร้อม Validation และไม่เปิด Secret
+- [ ] Preview ใช้ Form State และไม่เปิดเผย Draft ผ่าน Public API
 
 ### Engineering QA
 
 - [ ] Swagger ระบุ Request/Response และ Auth ของแต่ละ Endpoint
-- [ ] มี Tests สำหรับ Login, Project CRUD, Draft/Published และ Public Read
-- [ ] ตรวจ CORS, Cookie, CSRF Protection และ Error Handling
+- [ ] มี Unit, API e2e และ Browser smoke tests สำหรับ Login, CRUD, Draft/Published, Reorder, Upload และ Public Read
+- [ ] ตรวจ CORS, Cookie, CSRF Protection และ NestJS standard Error Handling
 - [ ] ตรวจ Lighthouse/Core Web Vitals บน Mobile อย่างน้อยหน้า `/`
-- [ ] ตรวจ Focus Navigation และ Reduced Motion
+- [ ] ผ่าน WCAG 2.2 AA checklist, Focus Navigation, Screen Reader ขั้นพื้นฐาน และ Reduced Motion
 
 ---
 
@@ -589,9 +623,8 @@ prisma/
 | 2. Public MVP | Hero, About/Skills, Work, Experience, Contact | หน้า One-page พร้อม Responsive |
 | 3. Content & API | PostgreSQL/Prisma, Public GET, Seed | หน้า Public ใช้ข้อมูลจริง |
 | 4. Admin Core | Login, Profile, Skills, Experience, Projects CRUD | CMS แก้ไขข้อมูลได้ |
-| 5. Publishing & Media | Draft/Published, Sorting, Cloudinary, Gallery | Workflow ของเจ้าของครบ |
+| 5. Publishing & Media | Draft/Published, Sorting, Cloudinary, Resume PDF, Gallery, Preview | Workflow ของเจ้าของครบ |
 | 6. Hardening | SEO, Accessibility, Security, Tests, Swagger | พร้อมประเมินตาม Acceptance Criteria |
-| 7. Optional Polish | Lightweight Animation และ Admin Preview | เพิ่มคุณภาพโดยไม่ขยาย MVP มาก |
 
 ---
 
@@ -603,14 +636,6 @@ prisma/
 - **ประสบการณ์ Public:** อ่านง่าย ดูผลงานไว ติดต่อสะดวก
 - **ประสบการณ์ Admin:** จัดการข้อมูลชัดเจน ลดโอกาส Publish ผิด
 - **เน้นสิ่งสำคัญ:** ความน่าเชื่อถือของผลงานและคุณภาพการใช้งานมากกว่า Visual Effect
-- **MVP Boundary:** One-page เดียว + Single-owner CMS + Project Publishing/Media โดยไม่สร้างฟีเจอร์ที่ไม่อยู่ในขอบเขต
+- **MVP Boundary:** One-page เดียว + Single-owner CMS + Project Publishing/Media + Admin Preview โดยไม่สร้างฟีเจอร์ที่ไม่อยู่ในขอบเขต
 
-### ตัดสินใจก่อนเริ่มลงมือ (Decision Log)
-
-1. จะรองรับการอัปโหลด **Resume PDF** หรือใช้เพียง `resumeUrl` ตาม Data Model ปัจจุบัน?
-2. จะแสดง **Availability Status** ใน Hero จากฟิลด์ใด หรือซ่อนไว้จนกว่าจะเพิ่มฟิลด์?
-3. จะใช้ **Preview ใน Admin** ตั้งแต่ MVP หรือจัดเป็น Optional Polish?
-4. การ Save Project ที่ Published สามารถเผยแพร่การแก้ไขทันทีได้หรือไม่? หากไม่ ต้องเพิ่ม Revision Model
-5. จะใช้ Cache Strategy แบบใดเพื่อให้ Publish/Unpublish ปรากฏตรงกับสถานะปัจจุบัน?
-
-เมื่อได้คำตอบเหล่านี้ สามารถนำเอกสารนี้ไปสร้าง **Figma Wireframe**, UI Components และ Implementation Tasks ต่อได้ทันที
+ข้อกำหนดชุดนี้เป็น Implementation Handoff ที่ตัดสินใจครบแล้ว สามารถนำไปสร้าง UI Components, API และ Tests ต่อได้ทันที
