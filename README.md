@@ -88,7 +88,7 @@
 
 | ส่วนงาน | เทคโนโลยี | การใช้งานหลัก |
 |---|---|---|
-| Frontend | Next.js, TypeScript | Public One-page และ Admin CMS |
+| Frontend | Next.js, TypeScript, Acertinity UI | Public One-page และ Admin CMS |
 | Backend | NestJS, TypeScript, REST API, Swagger | API, Authentication และ Business Logic |
 | Authentication | JWT, Argon2, HttpOnly Cookie | Login และป้องกัน Admin API |
 | Database | PostgreSQL, Prisma ORM | จัดเก็บ Profile และ Projects |
