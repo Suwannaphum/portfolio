@@ -343,12 +343,12 @@ Header → Hero Headline/CTA → Avatar/Status → About → Skills → Selected
 **จัดกลุ่ม Form:**
 
 1. Identity — Name, Headline, Bio, Location, Email
-2. Media — Avatar และ Resume URL / การแนบไฟล์ตามความสามารถระบบที่ตกลงกัน
+2. Media — Avatar และ Resume PDF upload
 3. Social — GitHub, LinkedIn
 
 - Preview Avatar ก่อนบันทึก
 - Field URL ต้องตรวจรูปแบบและรองรับค่าว่าง
-- Resume เป็น URL ใน Data Model ปัจจุบัน; หากต้องการอัปโหลด Resume จริงต้องกำหนด Storage/Validation เพิ่ม เพราะข้อกำหนด Cloudinary Upload ปัจจุบันจำกัดรูปภาพ
+- Resume รับเป็น PDF ผ่าน Backend เท่านั้น; Backend ตรวจ MIME/ขนาดไม่เกิน 20MB แล้วอัปโหลด Cloudinary พร้อมเก็บ `resumeUrl` และ `resumeCloudinaryId`
 - **สำคัญ:** ข้อมูล Profile ไม่มีสถานะ Draft/Published ใน Data Model ปัจจุบัน การ Save จะมีผลบน Public เมื่อระบบดึงข้อมูลใหม่; ต้องแจ้งผลนี้ไว้ใน UI
 
 ### 10.4 Skills Manager
@@ -391,28 +391,28 @@ Header → Hero Headline/CTA → Avatar/Status → About → Skills → Selected
 
 **ข้อควรระวัง:** ใน Data Model ปัจจุบันมีเพียง `status` ระดับ Project ไม่มีระบบ Revision แยก Draft Content จาก Published Content ดังนั้นเมื่อแก้ไขเนื้อหาของ Project ที่ Published และกด Save เนื้อหาอาจเปลี่ยนบน Public ทันที **ไม่ควรระบุว่ารองรับการแก้ Draft ของ Project ที่เผยแพร่แล้วโดยไม่กระทบ Public** เว้นแต่เพิ่มโครงสร้างข้อมูลสำหรับ Revision/Versioning
 
-### 10.8 Preview ก่อนเผยแพร่ (Optional ใน MVP)
+### 10.8 Preview ก่อนเผยแพร่
 
-แนะนำ Preview ภายใน Admin จากค่าปัจจุบันในฟอร์มโดย **ไม่เรียก Public API และไม่เปิดเผย Draft ผ่าน Public Endpoint** สามารถเปิด Side Panel หรือ Preview Modal ที่แสดง Card ในดีไซน์ Public; เลื่อนออกไปหลัง MVP ได้หากซับซ้อน
+Admin ต้องมี Preview ภายในจากค่าปัจจุบันในฟอร์มโดย **ไม่เรียก Public API และไม่เปิดเผย Draft ผ่าน Public Endpoint** ใช้ Side Panel หรือ Preview Dialog ที่แสดง Card ในดีไซน์ Public
 
 ### 10.9 Media Upload
 
-- ใช้ Cloudinary สำหรับ Avatar, Cover, Gallery Images
+- ใช้ Cloudinary สำหรับ Avatar, Cover, Gallery Images และ Resume PDF
 - แสดง Preview, Progress/Uploading, Success, Error และปุ่ม Remove/Retry
-- ตรวจชนิด MIME ที่อนุญาต, ขนาดไฟล์สูงสุด และจำนวนรูปตาม Configuration
+- ตรวจชนิด MIME ที่อนุญาต (`image/jpeg`, `image/png`, `image/webp`, `application/pdf`), รูปไม่เกิน 10MB, PDF ไม่เกิน 20MB และ Gallery ไม่เกิน 10 รูปต่อ Project
 - Validate ซ้ำที่ Backend ไม่เชื่อแค่ Frontend
 - ไม่ส่ง Cloudinary Secret หรือ Credential สำหรับเขียนข้อมูลไปยัง Browser
 - หลีกเลี่ยงการลบภาพจาก Cloudinary ทันทีหากยังถูกอ้างถึงในข้อมูลอื่น
 
 ---
 
-## 11. Content Model ที่เสนอให้เติมรายละเอียด
+## 11. Content Model — MVP Locked
 
-Model ขั้นต่ำตาม Requirement ครอบคลุม Profile และ Project แต่เพื่อรองรับ Skills/Experience CRUD และ Alt Text แนะนำปรับให้อยู่ในรูปแบบที่จัดการง่ายขึ้น:
+Model ขั้นต่ำตาม Requirement ครอบคลุม Profile, Skills, Experience, Projects และ Gallery Images:
 
 ### Profile
 
-`name`, `headline`, `bio`, `location`, `email`, `avatarUrl`, `avatarAlt`, `resumeUrl`, `githubUrl`, `linkedinUrl`
+`name`, `headline`, `bio`, `location`, `email`, `availableForOpportunities`, `avatarUrl`, `avatarAlt`, `avatarCloudinaryId`, `resumeUrl`, `resumeCloudinaryId`, `githubUrl`, `linkedinUrl`
 
 ### Skill
 
@@ -420,23 +420,23 @@ Model ขั้นต่ำตาม Requirement ครอบคลุม Profil
 
 ### Experience
 
-`id`, `title`, `organization`, `type?`, `startDate`, `endDate?`, `isCurrent?`, `summary?`, `sortOrder`
+`id`, `title`, `organization`, `type?`, `startDate`, `endDate?`, `summary?`, `highlights`, `sortOrder`
 
 ### Project
 
-`id`, `title`, `slug`, `description`, `techStack`, `coverImageUrl`, `coverImageAlt`, `galleryItems[]`, `projectUrl?`, `sourceUrl?`, `status (Draft|Published)`, `sortOrder`, `createdAt`, `updatedAt`
+`id`, `title`, `slug`, `description`, `techStack`, `coverImageUrl`, `coverImageAlt`, `coverCloudinaryId`, `gallery[]`, `projectUrl?`, `sourceUrl?`, `status (Draft|Published)`, `sortOrder`, `createdAt`, `updatedAt`
 
-### GalleryItem
+### ProjectImage
 
-`imageUrl`, `alt`, `sortOrder`
+`id`, `projectId`, `imageUrl`, `cloudinaryId`, `alt`, `sortOrder`
 
-> `?` หมายถึง Optional ในข้อเสนอเชิง UX; การออกแบบ Prisma Schema จริงต้องตัดสินใจเรื่องความสัมพันธ์, Constraint และ Validation อีกครั้ง
+> `?` หมายถึง Optional ตาม Prisma schema; Gallery และ Cloudinary references ถูกตรวจสอบที่ Backend
 
 ---
 
 ## 12. API & Frontend Integration Notes
 
-### Endpoint ตาม Requirement
+### Endpoint ที่ Implement แล้ว
 
 | Method | Endpoint | Scope |
 |---|---|---|
@@ -444,18 +444,15 @@ Model ขั้นต่ำตาม Requirement ครอบคลุม Profil
 | POST | `/auth/login` | Admin Login |
 | POST | `/auth/logout` | Admin Logout |
 | GET / PATCH | `/portfolio/admin/profile` | Admin Read / Edit Profile |
+| GET / POST / PATCH / DELETE | `/portfolio/admin/skills` | Admin Skill Management |
+| GET / POST / PATCH / DELETE | `/portfolio/admin/experiences` | Admin Experience Management |
 | GET / POST / PATCH / DELETE | `/portfolio/admin/projects` | Admin Project Management |
-| POST | `/media/upload` | Authenticated image upload |
+| PATCH | `/portfolio/admin/{skills,experiences,projects}/reorder` | Batch Reorder |
+| POST | `/media/upload` | Authenticated image/PDF upload |
 
-### Endpoint เพิ่มเติมที่ควรระบุเมื่อเริ่ม Implementation
+ทุก Resource รองรับ `GET /:id`; ทุก Mutation ใช้ Session Cookie + CSRF และทุก Admin read ใช้ Session Cookie
 
-- Admin CRUD/Sort สำหรับ Skills เช่น `/portfolio/admin/skills`
-- Admin CRUD/Sort สำหรับ Experience เช่น `/portfolio/admin/experience`
-- GET รายละเอียด Project ใน Admin ตาม ID/Slug เพื่อรองรับ Edit
-- PATCH สำหรับ Batch Reorder (หรือใช้ Endpoint Update ต่อรายการอย่างชัดเจน)
-- หากมี Preview Backend ให้กำหนดว่าต้อง Authenticate และป้องกัน Cache/Public Leak อย่างไร
-
-**หมายเหตุ:** เส้นทางตัวอย่างเพิ่มเติมเป็นข้อเสนอ ไม่ใช่ API ที่มีอยู่แล้ว ต้องกำหนด Request/Response ใน Swagger
+Admin Preview เป็น client-side Form State และไม่มี Preview Endpoint หรือ Public API call
 
 ### Authentication & Security UX/Implementation
 
@@ -470,8 +467,7 @@ Model ขั้นต่ำตาม Requirement ครอบคลุม Profil
 
 ### Data Fetching & SEO
 
-- Next.js ใช้ Server Rendering/Static Strategy ตามนโยบายการอัปเดตข้อมูลของโปรเจกต์
-- กำหนด Revalidation/Cache Invalidation หลัง Publish/Unpublish เพื่อให้หน้า Public ไม่ค้างสถานะเก่า
+- Next.js ใช้ Dynamic Server Rendering และ `no-store` สำหรับ Public API เพื่อให้ข้อมูลที่ Save/Publish เห็นผลทันที
 - สร้าง `title`, `description`, canonical URL, Open Graph Image และ Social Metadata
 - ใช้ Semantic HTML (`header`, `main`, `section`, `footer`) และ Heading Hierarchy ที่ถูกต้อง
 - Image ที่ส่งเข้าเว็บควร Optimize ขนาด, Format, Responsive `sizes`, Width/Height เพื่อลด Layout Shift
@@ -591,7 +587,7 @@ prisma/
 | 4. Admin Core | Login, Profile, Skills, Experience, Projects CRUD | CMS แก้ไขข้อมูลได้ |
 | 5. Publishing & Media | Draft/Published, Sorting, Cloudinary, Gallery | Workflow ของเจ้าของครบ |
 | 6. Hardening | SEO, Accessibility, Security, Tests, Swagger | พร้อมประเมินตาม Acceptance Criteria |
-| 7. Optional Polish | Lightweight Animation และ Admin Preview | เพิ่มคุณภาพโดยไม่ขยาย MVP มาก |
+| 7. Hardening Polish | Reduced Motion, Keyboard และ Admin Preview | ปิด Acceptance Criteria โดยไม่ขยาย MVP |
 
 ---
 
@@ -605,12 +601,12 @@ prisma/
 - **เน้นสิ่งสำคัญ:** ความน่าเชื่อถือของผลงานและคุณภาพการใช้งานมากกว่า Visual Effect
 - **MVP Boundary:** One-page เดียว + Single-owner CMS + Project Publishing/Media โดยไม่สร้างฟีเจอร์ที่ไม่อยู่ในขอบเขต
 
-### ตัดสินใจก่อนเริ่มลงมือ (Decision Log)
+### Decision Log — MVP Locked
 
-1. จะรองรับการอัปโหลด **Resume PDF** หรือใช้เพียง `resumeUrl` ตาม Data Model ปัจจุบัน?
-2. จะแสดง **Availability Status** ใน Hero จากฟิลด์ใด หรือซ่อนไว้จนกว่าจะเพิ่มฟิลด์?
-3. จะใช้ **Preview ใน Admin** ตั้งแต่ MVP หรือจัดเป็น Optional Polish?
-4. การ Save Project ที่ Published สามารถเผยแพร่การแก้ไขทันทีได้หรือไม่? หากไม่ ต้องเพิ่ม Revision Model
-5. จะใช้ Cache Strategy แบบใดเพื่อให้ Publish/Unpublish ปรากฏตรงกับสถานะปัจจุบัน?
+1. Resume ใช้ Cloudinary PDF upload; `resumeUrl` และ `resumeCloudinaryId` ถูกบันทึกจากผลอัปโหลด
+2. Availability ใช้ `Profile.availableForOpportunities` และแสดงใน Hero เมื่อเป็น `true`
+3. Admin Preview ใช้ค่าจาก Form State โดยตรง ไม่เรียก Public API และไม่เปิดเผย Draft
+4. Save Project ที่ Published มีผล Public ทันที และไม่มี Revision/Versioning
+5. Public Frontend ใช้ `no-store` เพื่อให้ Publish/Unpublish และการแก้ข้อมูลที่ Public เห็นผลทันที
 
 เมื่อได้คำตอบเหล่านี้ สามารถนำเอกสารนี้ไปสร้าง **Figma Wireframe**, UI Components และ Implementation Tasks ต่อได้ทันที

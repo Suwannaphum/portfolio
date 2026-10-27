@@ -13,4 +13,4 @@ COPY . .
 RUN DATABASE_URL=postgresql://portfolio:change-me@postgres:5432/portfolio npm run prisma:generate
 
 EXPOSE 3000
-CMD ["npm", "run", "start:dev"]
+CMD ["sh", "-c", "npm run prisma:migrate:deploy && npm run prisma:seed && npm run start:dev"]

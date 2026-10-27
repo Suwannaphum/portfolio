@@ -377,8 +377,10 @@ POSTGRES_PASSWORD=change-me
 POSTGRES_DB=portfolio
 DATABASE_URL=postgresql://portfolio:change-me@postgres:5432/portfolio
 JWT_SECRET=change-me
+COOKIE_SECURE=false
 BACKEND_URL=http://backend:3000
 FRONTEND_URL=http://localhost:3001
+PORT=3000
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
@@ -403,32 +405,17 @@ SEED_ADMIN_PASSWORD=change-me
    npm --prefix qa install
    ```
 
-3. เริ่ม PostgreSQL และสร้าง migration/seed โดยใช้ host connection:
+3. สร้างและเริ่มทั้งระบบ:
 
    ```bash
-   docker compose --env-file .env up -d postgres
-
-   set -a
-   . ./.env
-   set +a
-   HOST_DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}"
-
-   DATABASE_URL="$HOST_DATABASE_URL" \
-     npm --prefix backend run prisma:migrate -- --name init
-
-   DATABASE_URL="$HOST_DATABASE_URL" \
-   SEED_ADMIN_EMAIL="$SEED_ADMIN_EMAIL" \
-   SEED_ADMIN_PASSWORD="$SEED_ADMIN_PASSWORD" \
-     npm --prefix backend run prisma:seed
+   docker compose --env-file .env up --build -d
    ```
 
-4. สร้างและเริ่ม Frontend/Backend:
+   Backend จะรัน `prisma migrate deploy` และ idempotent seed อัตโนมัติก่อนเปิด API
 
-   ```bash
-   docker compose --env-file .env up --build -d backend frontend
-   ```
+4. เปิด `http://localhost:3001/`, ตรวจ Backend ที่ `http://localhost:3000/health` และ Swagger ที่ `http://localhost:3000/docs`
 
-5. เปิด `http://localhost:3001/` และตรวจ Backend ที่ `http://localhost:3000/health` สคริปต์ Admin และ Swagger จะถูกเปิดเมื่อ modules ตาม API contract ถูกสร้างครบ
+สำหรับการสร้าง migration ใหม่ระหว่างพัฒนา ให้รัน `DATABASE_URL=... npm --prefix backend run prisma:migrate -- --name <name>` แล้ว commit migration ที่ได้
 
 คำสั่งตรวจสอบ:
 
